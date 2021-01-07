@@ -10,14 +10,29 @@ class PriceScreen extends StatefulWidget {
 
 class _PriceScreenState extends State<PriceScreen> {
   String selectedCurrency = 'USD';
-  String price = '';
+  List<String> prices = [];
+  bool isWaiting = true;
 
   void updateUI() async {
-    var coinData =
-        await CoinData(requiredCurrency: selectedCurrency).getCoinData();
+    var data = await CoinData(requiredCurrency: selectedCurrency).getCoinData();
     setState(() {
-      price = coinData['rate'].toStringAsFixed(0);
+      prices = data;
+      isWaiting = false;
     });
+  }
+
+  List<CurrencyCard> getCurrencyCards() {
+    updateUI();
+    List<CurrencyCard> currencyCards = [];
+    for (int i = 0; i < cryptoList.length; i++) {
+      CurrencyCard currencyCard = CurrencyCard(
+          cryptocurrency: cryptoList[i],
+          price: isWaiting ? '?' : prices[i],
+          selectedCurrency: selectedCurrency);
+      currencyCards.add(currencyCard);
+    }
+
+    return currencyCards;
   }
 
   DropdownButton getDropdownButton() {
@@ -80,26 +95,8 @@ class _PriceScreenState extends State<PriceScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          Padding(
-            padding: EdgeInsets.fromLTRB(18.0, 18.0, 18.0, 0),
-            child: Card(
-              color: Colors.lightBlueAccent,
-              elevation: 5.0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10.0),
-              ),
-              child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 28.0),
-                child: Text(
-                  '1 BTC = $price $selectedCurrency',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 20.0,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
+          Column(
+            children: getCurrencyCards(),
           ),
           Container(
             height: 150.0,
@@ -110,6 +107,44 @@ class _PriceScreenState extends State<PriceScreen> {
                 Platform.isAndroid ? getDropdownButton() : getCupertinoPicker(),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class CurrencyCard extends StatelessWidget {
+  const CurrencyCard({
+    Key key,
+    @required this.cryptocurrency,
+    @required this.price,
+    @required this.selectedCurrency,
+  }) : super(key: key);
+
+  final String cryptocurrency;
+  final String price;
+  final String selectedCurrency;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(18.0, 18.0, 18.0, 0),
+      child: Card(
+        color: Colors.lightBlueAccent,
+        elevation: 5.0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 28.0),
+          child: Text(
+            '1 $cryptocurrency = $price $selectedCurrency',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 20.0,
+              color: Colors.white,
+            ),
+          ),
+        ),
       ),
     );
   }

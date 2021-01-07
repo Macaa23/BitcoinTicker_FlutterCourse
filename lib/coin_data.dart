@@ -1,4 +1,4 @@
-import 'package:bitcoin_ticker/NetworkHelper';
+import 'package:bitcoin_ticker/NetworkHelper.dart';
 
 const List<String> currenciesList = [
   'AUD',
@@ -32,15 +32,20 @@ const List<String> cryptoList = [
 ];
 
 const apiKey = '85B45B26-CD56-476E-87A9-B05823FDE950';
-const url = 'https://rest.coinapi.io/v1/exchangerate/BTC/';
+const url = 'https://rest.coinapi.io/v1/exchangerate/';
 
 class CoinData {
   final requiredCurrency;
   CoinData({this.requiredCurrency});
 
-  Future<dynamic> getCoinData() async {
-    NetworkHelper networkHelper =
-        NetworkHelper(url: '$url$requiredCurrency?apikey=$apiKey');
-    return await networkHelper.getData();
+  Future getCoinData() async {
+    NetworkHelper networkHelper = NetworkHelper();
+    List<String> prices = [];
+    for (int i = 0; i < cryptoList.length; i++) {
+      var price = await networkHelper.getData(
+          url: '$url${cryptoList[i]}/$requiredCurrency?apikey=$apiKey');
+      prices.add(price['rate'].toStringAsFixed(0));
+    }
+    return prices;
   }
 }
